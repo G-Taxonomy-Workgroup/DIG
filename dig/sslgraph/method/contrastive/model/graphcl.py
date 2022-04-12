@@ -54,12 +54,13 @@ class GraphCL(Contrastive):
         for aug in [aug_1, aug_2]:
             if aug is None:
                 views_fn.append(lambda x: x)
+            elif aug not in aug_dict:
+                raise ValueError(
+                    f"Unknown augmentation {aug!r}, available options are: "
+                    f"{sorted(aug_dict)} or None",
+                )
             else:
-                try:
-                    views_fn.append(aug_dict[aug])
-                except:
-                    raise Exception("Aug must be from [dropN', 'permE', 'subgraph', \
-                                'maskN', 'random2', 'random3', 'random4'] or None.")
+                views_fn.append(aug_dict[aug])
 
         super(GraphCL, self).__init__(objective='NCE',
                                       views_fn=views_fn,
