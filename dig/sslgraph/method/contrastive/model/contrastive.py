@@ -83,7 +83,8 @@ class Contrastive(nn.Module):
             self.device = device
         
         
-    def train(self, encoder, data_loader, optimizer, epochs, per_epoch_out=False):
+    def train(self, encoder, data_loader, optimizer, epochs, per_epoch_out=False,
+              pbar_pos=None):
         r"""Perform contrastive training and yield trained encoders per epoch or after
         the last epoch.
         
@@ -98,6 +99,7 @@ class Contrastive(nn.Module):
             epochs (int): Number of total training epochs.
             per_epoch_out (bool): If True, yield trained encoders per epoch. Otherwise, only yield
                 the final encoder at the last epoch. (default: :obj:`False`)
+            pbar_pos (int, optional): Offset position of the progress bar.
                 
         :rtype: :class:`generator`.
         """
@@ -136,11 +138,12 @@ class Contrastive(nn.Module):
         else:
             train_fn = self.train_encoder_node
             
-        for enc in train_fn(encoder, data_loader, optimizer, epochs):
+        for enc in train_fn(encoder, data_loader, optimizer, epochs, pbar_pos=pbar_pos):
             yield enc
 
         
-    def train_encoder_graph(self, encoder, data_loader, optimizer, epochs):
+    def train_encoder_graph(self, encoder, data_loader, optimizer, epochs,
+                            pbar_pos=None):
         
         # output of each encoder should be Tensor for graph-level embedding
         if isinstance(encoder, list):
@@ -157,7 +160,7 @@ class Contrastive(nn.Module):
             pass
         
         min_loss = 1e9
-        with trange(epochs) as t:
+        with trange(epochs, position=pbar_pos) as t:
             for epoch in t:
                 epoch_loss = 0.0
                 t.set_description('Pretraining: epoch %d' % (epoch+1))
@@ -220,7 +223,8 @@ class Contrastive(nn.Module):
             yield encoder, self.proj_head_g
 
     
-    def train_encoder_node(self, encoder, data_loader, optimizer, epochs):
+    def train_encoder_node(self, encoder, data_loader, optimizer, epochs,
+                           pbar_pos=None):
         
         # output of each encoder should be Tensor for node-level embedding
         if isinstance(encoder, list):
@@ -237,7 +241,7 @@ class Contrastive(nn.Module):
             pass
         
         min_loss = 1e9
-        with trange(epochs) as t:
+        with trange(epochs, position=pbar_pos) as t:
             for epoch in t:
                 epoch_loss = 0.0
                 t.set_description('Pretraining: epoch %d' % (epoch+1))
@@ -287,7 +291,8 @@ class Contrastive(nn.Module):
             yield encoder, self.proj_head_n
     
     
-    def train_encoder_node_graph(self, encoder, data_loader, optimizer, epochs):
+    def train_encoder_node_graph(self, encoder, data_loader, optimizer, epochs,
+                                 pbar_pos=None):
         
         # output of each encoder should be tuple of (node_embed, graph_embed)
         if isinstance(encoder, list):
@@ -304,7 +309,7 @@ class Contrastive(nn.Module):
         except:
             pass
         min_loss = 1e9
-        with trange(epochs) as t:
+        with trange(epochs, position=pbar_pos) as t:
             for epoch in t:
                 epoch_loss = 0.0
                 t.set_description('Pretraining: epoch %d' % (epoch+1))

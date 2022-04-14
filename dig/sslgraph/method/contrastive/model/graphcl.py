@@ -69,8 +69,10 @@ class GraphCL(Contrastive):
                                       node_level=False,
                                       **kwargs)
 
-    def train(self, encoders, data_loader, optimizer, epochs, per_epoch_out=False):
+    def train(self, encoders, data_loader, optimizer, epochs,
+              per_epoch_out=False, pbar_pos=None):
         # GraphCL removes projection heads after pre-training
         for enc, proj in super(GraphCL, self).train(encoders, data_loader,
-                                                    optimizer, epochs, per_epoch_out):
+                                                    optimizer, epochs, per_epoch_out,
+                                                    pbar_pos=pbar_pos):
             yield enc
