@@ -3,7 +3,8 @@ import os
 import random
 import torch
 import numpy as np
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
+from torch_geometric.loader import DataLoader
 
 from .mol_tree import MolTree
 from .jtnn_enc import JTNNEncoder

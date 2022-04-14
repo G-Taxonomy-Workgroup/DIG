@@ -5,7 +5,8 @@ import torch
 from sklearn.utils import shuffle
 
 from torch_geometric.data import InMemoryDataset, download_url
-from torch_geometric.data import Data, DataLoader
+from torch_geometric.data import Data
+from torch_geometric.loader import DataLoader
 
 
 class MD17(InMemoryDataset):
