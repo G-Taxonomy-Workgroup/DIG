@@ -3,7 +3,7 @@ import time
 import os
 import torch
 from torch.optim import Adam
-from torch_geometric.data import DataLoader
+from torch_geometric.loader import DataLoader
 import numpy as np
 from torch.autograd import grad
 from torch.utils.tensorboard import SummaryWriter

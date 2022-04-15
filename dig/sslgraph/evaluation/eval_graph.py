@@ -4,7 +4,7 @@ import numpy as np
 import torch.nn as nn
 from tqdm import trange
 from sklearn.model_selection import StratifiedKFold
-from torch_geometric.data import DataLoader
+from torch_geometric.loader import DataLoader
 
 from sklearn.svm import SVC
 from sklearn import preprocessing
@@ -376,7 +376,8 @@ class GraphSemisupervised(object):
         self.f_epoch = f_epoch
         
     
-    def evaluate(self, learning_model, encoder, pred_head=None, fold_seed=12345):
+    def evaluate(self, learning_model, encoder, pred_head=None, fold_seed=12345,
+                 pbar_pos=None):
         r"""Run evaluation with given learning model and encoder(s).
         
         Args:
@@ -392,7 +393,8 @@ class GraphSemisupervised(object):
         p_optimizer = self.get_optim(self.p_optim)(encoder.parameters(), lr=self.p_lr,
                                                    weight_decay=self.p_weight_decay)
         if self.p_epoch > 0:
-            encoder = next(learning_model.train(encoder, pretrain_loader, p_optimizer, self.p_epoch))
+            encoder = next(learning_model.train(encoder, pretrain_loader, p_optimizer,
+                                                self.p_epoch, pbar_pos=pbar_pos))
         model = PredictionModel(encoder, pred_head, learning_model.z_dim, self.out_dim).to(self.device)
         
         test_scores = []
@@ -405,7 +407,7 @@ class GraphSemisupervised(object):
             fold_model = copy.deepcopy(model)
             f_optimizer = self.get_optim(self.f_optim)(fold_model.parameters(), lr=self.f_lr,
                                                        weight_decay=self.f_weight_decay)
-            with trange(self.f_epoch) as t:
+            with trange(self.f_epoch, position=pbar_pos) as t:
                 for epoch in t:
                     t.set_description('Fold %d, finetuning' % (fold+1))
                     self.finetune(fold_model, f_optimizer, train_loader)
