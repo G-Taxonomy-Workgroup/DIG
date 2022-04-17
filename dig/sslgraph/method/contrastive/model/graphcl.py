@@ -45,10 +45,10 @@ class GraphCL(Contrastive):
             'BPhi': BandpassFiltering(band='hi'),
             'BPmid': BandpassFiltering(band='mid'),
             'BPlo': BandpassFiltering(band='lo'),
-            'WBhi': WaveletBankFiltering(bands=[True, False, False]),
-            'WBmid': WaveletBankFiltering(bands=[False, True, False]),
-            'WBlo': WaveletBankFiltering(bands=[False, False, True]),
-            'Fiedler': FiedlerFragmentation()
+            'WBhi': WaveletBankFiltering(bands=[True, False, False], norm="sym"),
+            'WBmid': WaveletBankFiltering(bands=[False, True, False], norm="sym"),
+            'WBlo': WaveletBankFiltering(bands=[False, False, True], norm="sym"),
+            'Fiedler': FiedlerFragmentation(num_iter=200, max_size=10, method="full")
         }
 
         for aug in [aug_1, aug_2]:
