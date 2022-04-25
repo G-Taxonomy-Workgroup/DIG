@@ -64,7 +64,7 @@ class InfoGraph(Contrastive):
                                         proj_n=proj_n,
                                         **kwargs)
         
-    def train(self, encoders, data_loader, optimizer, epochs, per_epoch_out=False):
+    def train(self, encoders, data_loader, optimizer, epochs, per_epoch_out=False, pbar_pos=None):
         for enc, (proj, proj_n) in super(InfoGraph, self).train(encoders, data_loader, 
-                                                                optimizer, epochs, per_epoch_out):
+                                                                optimizer, epochs, per_epoch_out, pbar_pos=pbar_pos):
             yield InfoG_enc(enc, self.z_dim, self.z_n_dim)
