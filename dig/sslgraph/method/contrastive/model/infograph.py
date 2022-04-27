@@ -1,5 +1,8 @@
 import torch.nn as nn
 from .contrastive import Contrastive
+from dig.sslgraph.method.contrastive.views_fn import NodeAttrMask, EdgePerturbation, \
+    UniformSample, RWSample, RandomView
+from gtaxo_graphgym.transform.perturbations.spectral import BandpassFiltering, WaveletBankFiltering, FiedlerFragmentation
 
 
 class ProjHead(nn.Module):
@@ -50,9 +53,25 @@ class InfoGraph(Contrastive):
         **kwargs (optinal): Additional arguments of :class:`dig.sslgraph.method.Contrastive`.
     """
     
-    def __init__(self, g_dim, n_dim, **kwargs):
+    def __init__(self, g_dim, n_dim, augs=None, aug_ratio=0.2, **kwargs):
 
-        views_fn = [lambda x: x]
+        aug_dict = {
+            None: lambda x: x,
+            'permE': EdgePerturbation(ratio=aug_ratio),
+            'maskN': NodeAttrMask(mask_ratio=aug_ratio),
+            'BPhi': BandpassFiltering(band='hi'),
+            'BPmid': BandpassFiltering(band='mid'),
+            'BPlo': BandpassFiltering(band='lo'),
+            'WBhi': WaveletBankFiltering(bands=[True, False, False], norm="sym"),
+            'WBmid': WaveletBankFiltering(bands=[False, True, False], norm="sym"),
+            'WBlo': WaveletBankFiltering(bands=[False, False, True], norm="sym"),
+            'Fiedler': FiedlerFragmentation(num_iter=200, max_size=10, method="full")
+        }
+
+        if augs is None or len(augs) == 0:
+            views_fn = [lambda x: x]
+        else:
+            views_fn = [aug_dict[aug] for aug in augs]
         proj = ProjHead(g_dim, n_dim)
         proj_n = ProjHead(n_dim, n_dim)
         super(InfoGraph, self).__init__(objective='JSE',
