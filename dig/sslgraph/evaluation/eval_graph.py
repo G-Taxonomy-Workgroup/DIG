@@ -436,7 +436,8 @@ class GraphSemisupervised(object):
         test_scores = test_scores[torch.arange(self.n_folds, dtype=torch.long), selection]
         test_acc_mean = test_scores.mean().item()
         test_acc_std = test_scores.std().item() 
-        
+
+        print(f'Test accuracy, mean: {test_acc_mean}, std: {test_acc_std}')
         return test_acc_mean, test_acc_std
     
     
