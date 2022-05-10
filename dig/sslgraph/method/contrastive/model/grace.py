@@ -1,5 +1,54 @@
+from functools import partial
+from typing import Any, Dict, List, Optional
+
 from .contrastive import Contrastive
-from dig.sslgraph.method.contrastive.views_fn import NodeAttrMask, EdgePerturbation, Sequential
+from dig.sslgraph.method.contrastive.views_fn import (NodeAttrMask, EdgePerturbation, Sequential,
+                                                      UniformSample)
+from gtaxo_graphgym.transform.perturbations.spectral import BandpassFiltering, WaveletBankFiltering
+
+# TODO: Make aug_dict accessible across all NCE methods?
+aug_dict = {
+    "dropN": UniformSample,
+    "permE": EdgePerturbation,
+    "dropE": partial(EdgePerturbation, drop=True),
+    "maskN": NodeAttrMask,
+    "BP": BandpassFiltering,
+    'BPhi': partial(BandpassFiltering, band='hi'),
+    'BPmid': partial(BandpassFiltering, band='mid'),
+    'BPlo': partial(BandpassFiltering, band='lo'),
+    "WP": WaveletBankFiltering,
+    'WBhi': partial(WaveletBankFiltering, bands=[True, False, False], norm="sym"),
+    'WBmid': partial(WaveletBankFiltering, bands=[False, True, False], norm="sym"),
+    'WBlo': partial(WaveletBankFiltering, bands=[False, False, True], norm="sym"),
+}
+
+
+def setup_views_fn(aug: Optional[List[Dict[str, Any]]]):
+    """ Set up views function given the aug specification.
+
+    Example aug:
+    [
+        {
+            "name": "dropN",
+            "params": {
+                "ratio": 0.2,
+            },
+        },
+        {
+            "name": "WBlo",
+            "params": {
+                "bands": [False, False, True],
+                "norm": "sym",
+            },
+        },
+    ]
+
+    """
+    return (
+        Sequential([aug_dict[i["name"]](**i.get("params", dict())) for i in aug])
+        if aug is not None
+        else lambda x: x
+    )
 
 
 class GRACE(Contrastive):
@@ -20,15 +69,15 @@ class GRACE(Contrastive):
         **kwargs (optinal): Additional arguments of :class:`dig.sslgraph.method.Contrastive`.
     """
     
-    def __init__(self, dim, dropE_rate_1, dropE_rate_2, maskN_rate_1, maskN_rate_2, 
-                 **kwargs):
+    def __init__(
+        self,
+        dim: int,
+        aug_1: Optional[List[Dict[str, Any]]] = None,
+        aug_2: Optional[List[Dict[str, Any]]] = None,
+        **kwargs,
+    ):
 
-        view_fn_1 = Sequential([EdgePerturbation(drop=True, ratio=dropE_rate_1),
-                                NodeAttrMask(mask_ratio=maskN_rate_1)])
-        view_fn_2 = Sequential([EdgePerturbation(drop=True, ratio=dropE_rate_2),
-                                NodeAttrMask(mask_ratio=maskN_rate_2)])
-        views_fn = [view_fn_1, view_fn_2]
-        
+        views_fn = list(map(setup_views_fn, [aug_1, aug_2]))
         super(GRACE, self).__init__(objective='NCE',
                                     views_fn=views_fn,
                                     graph_level=False,

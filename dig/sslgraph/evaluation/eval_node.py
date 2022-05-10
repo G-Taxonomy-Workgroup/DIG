@@ -95,7 +95,7 @@ class NodeUnsupervised(object):
         self.comp_embed_on = comp_embed_on
         self.logreg_wd = logreg_wd
 
-    def evaluate(self, learning_model, encoder):
+    def evaluate(self, learning_model, encoder, **kwargs):
         r"""Run evaluation with given learning model and encoder(s).
         
         Args:
@@ -142,7 +142,7 @@ class NodeUnsupervised(object):
         return acc
     
     
-    def evaluate_multisplits(self, learning_model, encoder, split_masks):
+    def evaluate_multisplits(self, learning_model, encoder, split_masks, **kwargs):
         r"""Run evaluation with given learning model and encoder(s), return averaged scores 
         on multiple different splits.
         
