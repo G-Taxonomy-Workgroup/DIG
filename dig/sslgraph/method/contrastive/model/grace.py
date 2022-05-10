@@ -45,7 +45,7 @@ def setup_views_fn(aug: Optional[List[Dict[str, Any]]]):
 
     """
     return (
-        Sequential([aug_dict[i["name"]](**i["params"]) for i in aug])
+        Sequential([aug_dict[i["name"]](**i.get("params", dict())) for i in aug])
         if aug is not None
         else lambda x: x
     )
